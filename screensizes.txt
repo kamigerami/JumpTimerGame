@@ -1,0 +1,5 @@
+Small – 360x240
+Normal – 480x320
+Large – 720x480
+XLarge – 960x640
+XXLarge – 1440x960
