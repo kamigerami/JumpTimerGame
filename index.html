@@ -40,7 +40,9 @@
 	<script src="src/game/scene/Boot.js"></script>
 	<script src="src/game/scene/Preloader.js"></script>
 	<script src="src/game/scene/MainMenu.js"></script>
+	<script src="src/game/scene/Reset.js"></script>
 	<script src="src/game/scene/Game.js"></script>
+	<script src="src/game/scene/Level2.js"></script>
 </head>
 <body>
 
@@ -105,7 +107,9 @@
 	game.state.add('Boot', BasicGame.Boot);
 	game.state.add('Preloader', BasicGame.Preloader);
 	game.state.add('MainMenu', BasicGame.MainMenu);
+	game.state.add('Reset', BasicGame.Reset);
 	game.state.add('Game', BasicGame.Game);
+	game.state.add('Level_II', BasicGame.Level_II);
 
 	//	Now start the Boot state.
 	game.state.start('Boot');

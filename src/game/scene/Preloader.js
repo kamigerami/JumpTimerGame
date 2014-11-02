@@ -26,6 +26,20 @@ BasicGame.Preloader.prototype = {
 			this.load.image('bg', 'assets/space_pattern.jpg');
 			this.load.image('foreground', 'assets/'+BasicGame.screen+'/foreground.png');
 
+
+			this.load.image('block_blue', 'assets/block_blue.png');
+			this.load.image('block_green', 'assets/block_green.png');
+			this.load.image('block_red', 'assets/block_red.png');
+			this.load.image('block_yellow', 'assets/block_yellow.png');
+
+			// load MUSIC ///
+	
+			this.load.audio('hit', 'assets/sounds/hit.wav');
+			this.load.audio('jump', 'assets/sounds/jump.wav');
+			this.load.audio('music', 'assets/sounds/music.wav');
+
+		///////////////////////////////////
+
 		// spritesheet(key, url, frameWidth, frameHeight, frameMax, margin, spacing) → {Phaser.Loader}
 
 		/// PRELOAD FONTS
@@ -60,6 +74,13 @@ BasicGame.Preloader.prototype = {
 
 		// texture packer array
 		this.load.atlasJSONArray('hero_sprint', 'assets/hero_sprint_json.png', 'assets/hero_sprint.json');
+
+		// load hero second animaton
+		this.load.spritesheet('hero_jump_glide', 'assets/hero_sprint_jump_glide.png', 50,100, 30)
+
+		// hero pixelized
+		this.load.image('hero_pixel', 'assets/hero_pixel.png');
+
 
 	},
 

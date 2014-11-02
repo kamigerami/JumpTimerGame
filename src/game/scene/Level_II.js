@@ -1,26 +1,12 @@
 /// declaring global vars
-	var death = 3;
-	var music = null;
-	var playButton = null;
-	var hero_animated_sprint = null;
-	var onTheGround = null; 
-	var text = null;
-	var timeCheck = null;
 	var fontSize = 25;
-	var touchInputIsActive = false;
-	var obstacles = null;
-	var button_yellow,button_blue, button_red, button_green;
-	var block_red, block_yellow;
-	var health = 5;
 	var alive = true;
-	var onOutOfBounds = null;
-	var labelGameOver = null;
 
-BasicGame.Game = function (game) {
+BasicGame.Level_II = function (game) {
 
 };
 
-BasicGame.Game.prototype = {
+BasicGame.Level_II.prototype = {
 
 	create: function () {
 	// check first what screen size it is to scale stuff accordingly
@@ -43,13 +29,13 @@ BasicGame.Game.prototype = {
 		//	Naturally I expect you to do something significantly better :)
 
 		BasicGame.start = 0;
-		BasicGame.level = 1;
+		BasicGame.level = 2;
     		 //////////// load sprites and atlases /////////////////////////
          	
 		// loading up the background
                 background = this.game.add.tileSprite(0,0, this.world.width, this.world.height, 'bg');
 		// autoscroll the spaceBG
-		background.autoScroll(-700,0);
+		background.autoScroll(-800,0);
 
 		// load foreground
 	        foreground = this.game.add.sprite(0,0, 'foreground');
@@ -59,13 +45,12 @@ BasicGame.Game.prototype = {
 
 
  //// START TEXT
-		if (this.startText == null ) {
-			console.log("start text is null so set it");
-		this.startText = this.game.add.bitmapText(0,0, 'font', 'LEVEL I', this.fontSize);
+		this.startText = this.game.add.bitmapText(0,0, 'font', 'Level II', this.fontSize);
 		this.startText.x = this.game.width / 2 - this.startText.textWidth / 2;
 		this.startText.y = this.game.height / 2 - this.startText.textHeight / 2;
-	}
 
+	tapToStart = this.game.add.text(this.game.width/2+0.5, this.game.height/2+70, 'Tap or Click to start...', { font: this.fontSize-5+'px Arial', fill: '#fff' });
+                tapToStart.anchor.setTo(0.5, 0.5);
 
 labelDeath = this.game.add.text(100, this.game.height / 4, 'Lifes : '+death, { font: this.fontSize-5+'px Arial', fill: '#fff', align: 'center' });
                 labelDeath.anchor.setTo(0.5, 0.5);
@@ -226,14 +211,11 @@ BasicGame.obstacles.setAll('outOfBoundsKill', true);
 
 /////////////////////////////////
 
-           this.emitter = this.game.add.emitter(0, 0, 200);
+           this.emitter = this.game.add.emitter(0, 0, 400);
             this.emitter.makeParticles('hero_pixel');
             this.emitter.gravity = 0;
-            this.emitter.minParticleSpeed.setTo(-200, -200);
-            this.emitter.maxParticleSpeed.setTo(200, 200);
-
-  			// starting GAME 
-			if(this.game.inputOnDown)  this.game.input.onDown.addOnce(this.shutdown, this);
+            this.emitter.minParticleSpeed.setTo(-100, -500);
+            this.emitter.maxParticleSpeed.setTo(100, 500);
 
 
 			
@@ -256,13 +238,24 @@ BasicGame.obstacles.setAll('outOfBoundsKill', true);
 		this.game.physics.arcade.collide(topground, foreground);
 		this.game.physics.arcade.collide(BasicGame.obstacles, topground);
 		this.game.physics.arcade.collide(BasicGame.obstacles, hero_animated_sprint);
-		
+
+
+		//////// if touch is down remove text and start
+		if ( this.game.input.pointer1.isDown && BasicGame.start == 0) {
+			console.log("first input down");
+		this.game.world.remove(this.startText);
+		this.game.world.remove(this.byme);
+		this.game.world.remove(this.tapToStart);
+		BasicGame.start = 1;
+		BasicGame.music = this.game.add.audio('music');
+		BasicGame.music.play('', 0, 0.1, true);
+	}
+ 
+
 
 		// debug overlap
     		this.game.physics.arcade.overlap(BasicGame.obstacles, hero_animated_sprint, heroHitHandler, null, this);
 
-
-			// remove level text // 
 //////// new code above for input control //////////
 		var i; // obstacle variable declared above
 		for ( i = 0; i < BasicGame.obstacles.length; i++) // 10 obstacles 
@@ -290,12 +283,12 @@ BasicGame.obstacles.setAll('outOfBoundsKill', true);
 			// hero passed to next level
 			console.log("welcome to next level");
 				if (BasicGame.music != null) BasicGame.music.resume();
-				this.state.start('Level_II');
+				this.state.start('Level_III');
 		}
 /////// press to start
                 this.emitter.forEachAlive(function(particle) 
 			{
-			particle.alpha = this.game.math.clamp(particle.lifespan / 100, 0, 1);
+			particle.alpha = this.game.math.clamp(particle.lifespan / 10, 0, 1);
 			
 			}, this);
 
@@ -311,77 +304,48 @@ BasicGame.obstacles.setAll('outOfBoundsKill', true);
 				hero_animated_sprint.alive = false;
 				this.emitter.x = hero_animated_sprint.x+hero_animated_sprint.width/2;
 				 this.emitter.y = hero_animated_sprint.y+hero_animated_sprint.height/2;
-                    		this.emitter.start(true, 1000, null, 16);
+                    		this.emitter.start(true, 3000, 100, 16);
                      		BasicGame.hit_sound.play('', 0, 0.2);
                        		 death -= 1;
                        		 labelDeath.content = death;
-					this.state.start('Game')
-                                } else { hero_animated_sprint.alive = false;
-                                        if (BasicGame.music != null ) {
-                                        BasicGame.music.pause();
-                                        }
-                                        BasicGame.start = 0;
-                                        BasicGame.level = 0;
-                                        death = 3;
+					this.state.start('Level12)
+				} else { hero_animated_sprint.alive = false;
+					if (BasicGame.music != null ) {
+					BasicGame.music.pause();	
+					}
+					BasicGame.start = 0;
+					BasicGame.level = 0;
+					death = 3;
 // GAME OVER TEXtT
-
-                            this.startText.setText(''); 
+		
+  		            this.game.world.remove(this.startText);
+                	    this.game.world.remove(this.byme);
+               		    this.game.world.remove(this.tapToStart);
 
                 this.labelGameOver = this.game.add.bitmapText(0,0, 'font', 'Game Over', this.fontSize);
                 this.labelGameOver.x = this.game.width / 2 - this.labelGameOver.textWidth / 2;
                 this.labelGameOver.y = this.game.height / 2 - this.labelGameOver.textHeight / 2;
-                //this.labelGameOver.anchor.setTo(0.5, 0.5);
-		
-                 this.state.start('MainMenu');
+                this.labelGameOver.anchor.setTo(0.5, 0.5);
+ 
+	         this.state.start('MainMenu');
 
-                                }
-                        }
+				}
+			}
+
+
+
+
 },
 	
-shutdown: function () {
 
-      if (this.startText == null ) {
-       console.log("start text is null so set it");
-       this.startText = this.game.add.bitmapText(0,0, 'font', '', this.fontSize);
-       this.startText.x = this.game.width / 2 - this.startText.textWidth / 2;
-       this.startText.y = this.game.height / 2 - this.startText.textHeight / 2;
-        }
-
-        //destroy bitmap text
-        this.startText = null;
-
-        //destroy tween
-        if (this.hero_animated_sprint) {
-            this.hero_animated_sprint.onComplete.removeAll();
-            this.hero_animated_sprint.stop();
-            this.hero_animated_sprint = null;
-        }
-
-        //destroy sound
-        if (this.music) {
-            this.music.stop();
-            this.music = null;
-        }
-                
-
-        //destroy sprite
-        if (this.block_red) {
-            this.block_red.destroy();
-            this.block_red = null;
-        }
-
-        console.log('destroy mainmenu');
-    },
 
 
 	startGame: function (pointer) {
-		console.log("running START GAME state");	
-	            this.startText.setText('');
 
-
+		
 
 		//	And start the actual game
-	//	this.state.start('Game');
+		this.state.start('Game');
 
 	}
 		// game debug

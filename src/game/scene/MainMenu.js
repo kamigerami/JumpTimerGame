@@ -1,4 +1,5 @@
 /// declaring global vars
+	var death = 3;
 	var music = null;
 	var playButton = null;
 	var hero_animated_sprint = null;
@@ -7,12 +8,12 @@
 	var timeCheck = null;
 	var fontSize = 25;
 	var touchInputIsActive = false;
-	var block_yellow = null;
 	var obstacles = null;
 	var button_yellow,button_blue, button_red, button_green;
 	var block_red, block_yellow;
 	var health = 5;
 	var alive = true;
+	var onOutOfBounds = null;
 
 BasicGame.MainMenu = function (game) {
 
@@ -41,13 +42,7 @@ BasicGame.MainMenu.prototype = {
 		//	Naturally I expect you to do something significantly better :)
 
 		BasicGame.start = 0;
-
-           this.emitter = this.game.add.emitter(0, 0, 200);
-            this.emitter.makeParticles('hero_pixel');
-            this.emitter.gravity = 0;
-            this.emitter.minParticleSpeed.setTo(-200, -200);
-            this.emitter.maxParticleSpeed.setTo(200, 200);
-
+		BasicGame.level = 0;
     		 //////////// load sprites and atlases /////////////////////////
          	
 		// loading up the background
@@ -73,14 +68,14 @@ BasicGame.MainMenu.prototype = {
 	tapToStart = this.game.add.text(this.game.width/2+0.5, this.game.height/2+70, 'Tap or Click to start...', { font: this.fontSize-5+'px Arial', fill: '#fff' });
                 tapToStart.anchor.setTo(0.5, 0.5);
 
+labelDeath = this.game.add.text(100, this.game.height / 4, 'Lifes : '+death, { font: this.fontSize-5+'px Arial', fill: '#fff', align: 'center' });
+                labelDeath.anchor.setTo(0.5, 0.5);
+
 ////// load sounds
 
 		BasicGame.hit_sound = this.game.add.audio('hit');
-
-
-		this.labelDeath = this.game.add.text(100, this.world.height-35, '0', { font: '18px Arial', fill: '#fff', align: 'center' });
-                this.labelDeath.anchor.setTo(0.5, 0.5);
-//////////////
+		BasicGame.music = this.game.add.audio('music');
+		BasicGame.music.play('', 0, 0.1, true);
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +113,7 @@ BasicGame.MainMenu.prototype = {
 			console.log(BasicGame.screen, "is smaller than large");
 			hero_animated_sprint.scale.set(0.5);
 		}
-		
+			
 
 		//Aligning HUD to view edges
 
@@ -183,21 +178,6 @@ BasicGame.MainMenu.prototype = {
 		}
 
 /// image out function /////////
-		function heroHit(hero, hit) {
-
-			if (hero_animated_sprint.alive) {
-				hero_animated_sprint.alive = false;
-				this.emitter.x = hero_animated_sprint.x+hero_animated_sprint.width/2;
-				 this.emitter.y = hero_animated_sprint.y+hero_animated_sprint.height/2;
-                    		this.emitter.start(true, 300, null, 8);
-
-                     		BasicGame.hit_sound.play('', 0, 0.2);
-                       		 death += 1;
-                       		 this.labelDeath.content = death;
-				this.state.start('reset');
-				}
-			}
-
 /////// jump function //////////
 
 	   // Set a variable that is true when the player is touching the ground
@@ -212,7 +192,7 @@ BasicGame.MainMenu.prototype = {
 				BasicGame.jump_sound = this.game.add.audio('jump').play('', 0, 0.1);
 				console.log("inside if statement");
         			hero_animated_sprint.body.velocity.y = -600;
-				hero_animated_sprint.body.velocity.x += 10;
+				hero_animated_sprint.body.velocity.x += 25;
 			}
 		}
 
@@ -224,9 +204,10 @@ BasicGame.obstacles.enableBody = true;
 BasicGame.obstacles.physicsBodyType = Phaser.Physics.ARCADE;
 BasicGame.obstacles.allowGravity = false;
 BasicGame.obstacles.checkWorldBounds = true;
+BasicGame.obstacles.setAll('outOfBoundsKill', true);
 //obstacles.x++;
 
-		for (var x = 0; x < 5; x++)
+		for (var x = 0; x < 2; x++)
 		{
  		block_red = BasicGame.obstacles.create(-this.world.width + 5+x * Math.random(),this.world.height / 3, 'block_red');
             	block_red.name = 'block_red' + x.toString();
@@ -247,8 +228,13 @@ BasicGame.obstacles.checkWorldBounds = true;
 
 
 /////////////////////////////////
-                this.emitter.forEachAlive(function(particle)
-                        {particle.alpha = this.game.math.clamp(particle.lifespan / 100, 0, 1);}, this);
+
+           this.emitter = this.game.add.emitter(0, 0, 200);
+            this.emitter.makeParticles('hero_pixel');
+            this.emitter.gravity = 0;
+            this.emitter.minParticleSpeed.setTo(-200, -200);
+            this.emitter.maxParticleSpeed.setTo(200, 200);
+
 
 			
 
@@ -271,7 +257,24 @@ BasicGame.obstacles.checkWorldBounds = true;
 		this.game.physics.arcade.collide(BasicGame.obstacles, topground);
 		this.game.physics.arcade.collide(BasicGame.obstacles, hero_animated_sprint);
 
-    		this.game.physics.arcade.overlap(hero_animated_sprint, obstacles, null, this);
+  			// starting GAME 
+			 this.game.input.onDown.addOnce(this.shutdown, this);
+
+		//////// if touch is down remove text and start
+/*		if ( this.game.input.onDown && BasicGame.start == 0) {
+			console.log("first input down");
+		this.game.world.remove(this.startText);
+		this.game.world.remove(this.byme);
+		this.game.world.remove(this.tapToStart);
+		BasicGame.start = 1;
+		BasicGame.music = this.game.add.audio('music');
+		BasicGame.music.play('', 0, 0.1, true);
+	}
+ 
+*/
+
+		// debug overlap
+///    		this.game.physics.arcade.overlap(BasicGame.obstacles, hero_animated_sprint, heroHitHandler, null, this);
 
 //////// new code above for input control //////////
 		var i; // obstacle variable declared above
@@ -283,27 +286,101 @@ BasicGame.obstacles.checkWorldBounds = true;
 				BasicGame.obstacles.getAt(i).body.x += this.world.randomX;
 			}
 		 }		
-			if ( BasicGame.start == 0) {
-				BasicGame.start = 1;
-//start music		//	BasicGame.music = this.game.add.audio('music').play('', 0, 0.1, true);
-			}
-			if (onTheGround && BasicGame.start == 1) {
+				if (onTheGround && BasicGame.start == 1) {
 				hero_animated_sprint.alive = true;
 			}	
+		/*	if (hero_animated_sprint.x > - this.world.width ) {
+			console.log("inside sprintx > this.world.width statement");
+				hero_animated_sprint.kill();
+				hero_animated_sprint.alive = false;
+				if (BasicGame.music != null) {
+				BasicGame.music.pause();	
+				console.log("stopping music");
+				}
+			}
+*/
 /////// press to start
-},
+                this.emitter.forEachAlive(function(particle) 
+			{
+			particle.alpha = this.game.math.clamp(particle.lifespan / 100, 0, 1);
+			
+			}, this);
 
-	reset: function () {
-		this.gameStarted = false;
-		this.gameOver = false;
-		this.score = 0;
-		this.hero_animated_sprint.alive = true;
-		BasicGame.start = 0;
-	},
+	//		if ( topground.y > hero_animated_sprint) console.log("hero y pos less than topground y pos");
+	//		console.log("hero.y : ", hero_animated_sprint.y);
+	//		console.log("topground.y : ", topground.y);
+
+
+		function heroHitHandler (hero, obstacle) {
+			console.log("running heroHit function", hero, obstacle);
+
+			if (hero_animated_sprint.alive && death > 0) {
+				hero_animated_sprint.alive = false;
+				this.emitter.x = hero_animated_sprint.x+hero_animated_sprint.width/2;
+				 this.emitter.y = hero_animated_sprint.y+hero_animated_sprint.height/2;
+                    		this.emitter.start(true, 1000, null, 16);
+                     		BasicGame.hit_sound.play('', 0, 0.2);
+                       		 death -= 1;
+                       		 labelDeath.content = death;
+					this.state.start('Reset')
+                                } else { hero_animated_sprint.alive = false;
+                                        if (BasicGame.music != null ) {
+                                        BasicGame.music.pause();
+                                        }
+                                        BasicGame.start = 0;
+                                        BasicGame.level = 0;
+                                        death = 3;
+// GAME OVER TEXtT
+
+                            this.game.world.remove(this.startText);
+                            this.game.world.remove(this.byme);
+                            this.game.world.remove(this.tapToStart);
+
+                this.labelGameOver = this.game.add.bitmapText(0,0, 'font', 'Game Over', this.fontSize);
+                this.labelGameOver.x = this.game.width / 2 - this.labelGameOver.textWidth / 2;
+                this.labelGameOver.y = this.game.height / 2 - this.labelGameOver.textHeight / 2;
+                this.labelGameOver.anchor.setTo(0.5, 0.5);
+
+                 this.state.start('MainMenu');
+
+                                }
+                        }
+},
+shutdown: function () {
+
+        //destroy bitmap text
+        this.startText = null;
+
+        //destroy tween
+        if (this.hero_animated_sprint) {
+            this.hero_animated_sprint.onComplete.removeAll();
+            this.hero_animated_sprint.stop();
+            this.hero_animated_sprint = null;
+        }
+
+        //destroy sound
+        if (this.music) {
+            this.music.stop();
+            this.music = null;
+        }
+
+
+        //destroy sprite
+        if (this.block_red) {
+            this.block_red.destroy();
+            this.block_red = null;
+        }
+
+        console.log('destroy mainmenu -> start NEW GAME');
+	this.startGame();
+    },
+
+	
+
+
 
 	startGame: function (pointer) {
-
-		
+		console.log("running START GAME state");	
 
 		//	And start the actual game
 		this.state.start('Game');

@@ -3,10 +3,16 @@ BasicGame = {
     /* Here we've just got some global level vars that persist regardless of State swaps */
     score: 0,
     death: 0,
-    
+    obstacles: null,
+    hit_sound: null,
+    jump_sound: null,
+    start: 0,    
+    level: 0,
+    heroHit: null,
+
    /* adding default font size across states */
     fontSize: 15,
-
+  
 
     /* If the music in your game needs to play through-out a few State swaps, then you could reference it here */
     music: null,
