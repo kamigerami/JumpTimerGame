@@ -40,6 +40,14 @@ BasicGame.MainMenu.prototype = {
 		//	Here all we're doing is playing some music and adding a picture and button
 		//	Naturally I expect you to do something significantly better :)
 
+		BasicGame.start = 0;
+
+           this.emitter = this.game.add.emitter(0, 0, 200);
+            this.emitter.makeParticles('hero_pixel');
+            this.emitter.gravity = 0;
+            this.emitter.minParticleSpeed.setTo(-200, -200);
+            this.emitter.maxParticleSpeed.setTo(200, 200);
+
     		 //////////// load sprites and atlases /////////////////////////
          	
 		// loading up the background
@@ -65,7 +73,14 @@ BasicGame.MainMenu.prototype = {
 	tapToStart = this.game.add.text(this.game.width/2+0.5, this.game.height/2+70, 'Tap or Click to start...', { font: this.fontSize-5+'px Arial', fill: '#fff' });
                 tapToStart.anchor.setTo(0.5, 0.5);
 
+////// load sounds
 
+		BasicGame.hit_sound = this.game.add.audio('hit');
+
+
+		this.labelDeath = this.game.add.text(100, this.world.height-35, '0', { font: '18px Arial', fill: '#fff', align: 'center' });
+                this.labelDeath.anchor.setTo(0.5, 0.5);
+//////////////
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -168,6 +183,19 @@ BasicGame.MainMenu.prototype = {
 		}
 
 /// image out function /////////
+		function heroHit(hero, hit) {
+
+			if (hero_animated_sprint.alive) {
+				hero_animated_sprint.alive = false;
+				this.emitter.x = hero_animated_sprint.x+hero_animated_sprint.width/2;
+				 this.emitter.y = hero_animated_sprint.y+hero_animated_sprint.height/2;
+                    		this.emitter.start(true, 300, null, 8);
+
+                     		BasicGame.hit_sound.play('', 0, 0.2);
+                       		 death += 1;
+                       		 this.labelDeath.content = death;
+				}
+			}
 
 /////// jump function //////////
 
@@ -179,6 +207,8 @@ BasicGame.MainMenu.prototype = {
 
 			if (onTheGround) {
         		// Jump when the player is touching the ground and the up arrow is pressed
+
+				BasicGame.jump_sound = this.game.add.audio('jump').play('', 0, 0.1);
 				console.log("inside if statement");
         			hero_animated_sprint.body.velocity.y = -600;
 				hero_animated_sprint.body.velocity.x += 10;
@@ -215,8 +245,11 @@ BasicGame.obstacles.checkWorldBounds = true;
 	}
 
 
+/////////////////////////////////
+                this.emitter.forEachAlive(function(particle)
+                        {particle.alpha = this.game.math.clamp(particle.lifespan / 100, 0, 1);}, this);
 
-
+			
 
 },
 
@@ -237,20 +270,22 @@ BasicGame.obstacles.checkWorldBounds = true;
 		this.game.physics.arcade.collide(BasicGame.obstacles, topground);
 		this.game.physics.arcade.collide(BasicGame.obstacles, hero_animated_sprint);
 
-    		this.game.physics.arcade.overlap(hero_animated_sprint, block_red, null, this);
+    		this.game.physics.arcade.overlap(hero_animated_sprint, obstacles, null, this);
 
 //////// new code above for input control //////////
 		var i; // obstacle variable declared above
 		for ( i = 0; i < BasicGame.obstacles.length; i++) // 10 obstacles 
 		{
 
-			console.log(BasicGame.obstacles.getAt(i).body.x);
 			if(BasicGame.obstacles.getAt(i).body.x > this.world.width)
 			{
 				BasicGame.obstacles.getAt(i).body.x += this.world.randomX;
 			}
 		 }		
-
+			if ( BasicGame.start == 0) {
+				BasicGame.start = 1;
+			//	BasicGame.music = this.game.add.audio('music').play('', 0, 0.1, true);
+			}
 
 /////// press to start
 },
