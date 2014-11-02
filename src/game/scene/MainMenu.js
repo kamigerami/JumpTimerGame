@@ -1,15 +1,21 @@
-
+/// declaring global vars
+	var music = null;
+	var playButton = null;
+	var hero_animated_sprint = null;
+	var onTheGround = null; 
+	var text = null;
+	var timeCheck = null;
+	var fontSize = 25;
+	var touchInputIsActive = false;
+	var block_yellow = null;
+	var obstacles = null;
+	var button_yellow,button_blue, button_red, button_green;
+	var block_red, block_yellow;
+	var health = 5;
+	var alive = true;
 
 BasicGame.MainMenu = function (game) {
 
-	this.music = null;
-	this.playButton = null;
-	this.hero_animated_sprint = null;
-	this.onTheGround = null; 
-	this.text = null;
-	this.timeCheck = null;
-	this.fontSize = 25;
-	this.touchInputIsActive = false;
 };
 
 BasicGame.MainMenu.prototype = {
@@ -18,18 +24,21 @@ BasicGame.MainMenu.prototype = {
 	// check first what screen size it is to scale stuff accordingly
 	if(BasicGame.screen != "large" && BasicGame.screen != "xlarge" && BasicGame.screen != "xxlarge") {
 			console.log(BasicGame.screen, "is smaller than large");
-			this.fontSize = 15;
+			fontSize = 15;
 		}
 		// start physics system arcade mode
 		this.game.physics.startSystem(Phaser.Physics.ARCADE);
 		// add gravity to our world
-		this.game.physics.arcade.gravity.y = 2600;	
+		this.game.physics.arcade.gravity.y = 1200;	
+
+		// game physics bound only down and up
+
+		this.game.physics.setBoundsToWorld();
 
 
 		//	We've already preloaded our assets, so let's kick right into the Main Menu itself.
 		//	Here all we're doing is playing some music and adding a picture and button
 		//	Naturally I expect you to do something significantly better :)
-
 
     		 //////////// load sprites and atlases /////////////////////////
          	
@@ -70,8 +79,8 @@ BasicGame.MainMenu.prototype = {
 
 		
 		// set specific physic options to the body of each sprite
-
-		hero_animated_sprint.body.gravity.y = 500;
+		hero_animated_sprint.health = 10;
+		hero_animated_sprint.body.gravity.y = 200;
 		hero_animated_sprint.body.collideWorldBounds = true;
 		hero_animated_sprint.body.maxVelocity.setTo(500, 500 * 10);
 		foreground.body.collideWorldBounds = true;
@@ -135,19 +144,19 @@ BasicGame.MainMenu.prototype = {
 	this.game.button_blue.inputEnabled=true;
 
 	// then we add hover over and down events
-	this.game.button_yellow.events.onInputOver.add(hoverOver, this)
-	this.game.button_yellow.events.onInputOut.add(hoverOut, this)
+	this.game.button_yellow.events.onInputOver.add(hoverOver, this);
+	this.game.button_yellow.events.onInputOut.add(hoverOut, this);
 
-	this.game.button_red.events.onInputOver.add(hoverOver, this)
-	this.game.button_red.events.onInputOut.add(hoverOut, this)
-
-
-	this.game.button_blue.events.onInputOver.add(hoverOver, this)
-	this.game.button_blue.events.onInputOut.add(hoverOut, this)
+	this.game.button_red.events.onInputOver.add(hoverOver, this);
+	this.game.button_red.events.onInputOut.add(hoverOut, this);
 
 
-	this.game.button_green.events.onInputOver.add(hoverOver, this)
-	this.game.button_green.events.onInputOut.add(hoverOut, this)
+	this.game.button_blue.events.onInputOver.add(hoverOver, this);
+	this.game.button_blue.events.onInputOut.add(hoverOut, this);
+
+
+	this.game.button_green.events.onInputOver.add(hoverOver, this);
+	this.game.button_green.events.onInputOut.add(hoverOut, this);
 ////// our functions for hovering over and out ///////////7
 
 		function hoverOver(obj) {
@@ -171,9 +180,42 @@ BasicGame.MainMenu.prototype = {
 			if (onTheGround) {
         		// Jump when the player is touching the ground and the up arrow is pressed
 				console.log("inside if statement");
-        			hero_animated_sprint.body.velocity.y = -1000;
+        			hero_animated_sprint.body.velocity.y = -600;
+				hero_animated_sprint.body.velocity.x += 10;
 			}
 		}
+
+/////////////// create obstacles ///////////////7
+var block_red;
+
+BasicGame.obstacles = this.game.add.group();
+BasicGame.obstacles.enableBody = true;
+BasicGame.obstacles.physicsBodyType = Phaser.Physics.ARCADE;
+BasicGame.obstacles.allowGravity = false;
+BasicGame.obstacles.checkWorldBounds = true;
+//obstacles.x++;
+
+		for (var x = 0; x < 5; x++)
+		{
+ 		block_red = BasicGame.obstacles.create(-this.world.width + 5+x * Math.random(),this.world.height / 3, 'block_red');
+            	block_red.name = 'block_red' + x.toString();
+			block_red.checkWorldBounds = true;
+			block_red.events.onOutOfBounds.add(obstacleOut, this);
+			block_red.body.velocity.x = 150 + Math.random() * 15+x;
+		}
+
+	function obstacleOut(block_red) {
+		
+		// move obstacle to the right of the screen again
+		block_red.reset(this.world.width, block_red.y);
+
+		// give new random velocity
+
+		block_red.body.velocity.x -= 50 + Math.random() * 50;
+	}
+
+
+
 
 
 },
@@ -192,8 +234,23 @@ BasicGame.MainMenu.prototype = {
 		this.game.physics.arcade.collide(hero_animated_sprint, topground);
 //		this.game.physics.arcade.collide(hero_animated_sprint, foreground);
 		this.game.physics.arcade.collide(topground, foreground);
+		this.game.physics.arcade.collide(BasicGame.obstacles, topground);
+		this.game.physics.arcade.collide(BasicGame.obstacles, hero_animated_sprint);
+
+    		this.game.physics.arcade.overlap(hero_animated_sprint, block_red, null, this);
 
 //////// new code above for input control //////////
+		var i; // obstacle variable declared above
+		for ( i = 0; i < BasicGame.obstacles.length; i++) // 10 obstacles 
+		{
+
+			console.log(BasicGame.obstacles.getAt(i).body.x);
+			if(BasicGame.obstacles.getAt(i).body.x > this.world.width)
+			{
+				BasicGame.obstacles.getAt(i).body.x += this.world.randomX;
+			}
+		 }		
+
 
 /////// press to start
 },
@@ -212,5 +269,6 @@ BasicGame.MainMenu.prototype = {
 		this.state.start('Game');
 
 	}
-
+		// game debug
+	
 };
