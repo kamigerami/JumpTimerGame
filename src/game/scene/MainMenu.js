@@ -96,7 +96,7 @@ BasicGame.MainMenu.prototype = {
 		// set specific physic options to the body of each sprite
 		hero_animated_sprint.health = 10;
 		hero_animated_sprint.body.gravity.y = 200;
-		hero_animated_sprint.body.collideWorldBounds = true;
+//		hero_animated_sprint.body.collideWorldBounds = true;
 		hero_animated_sprint.body.maxVelocity.setTo(500, 500 * 10);
 		foreground.body.collideWorldBounds = true;
 //		foreground.body.allowGravity = false;
@@ -194,6 +194,7 @@ BasicGame.MainMenu.prototype = {
                      		BasicGame.hit_sound.play('', 0, 0.2);
                        		 death += 1;
                        		 this.labelDeath.content = death;
+				this.state.start('reset');
 				}
 			}
 
@@ -284,9 +285,11 @@ BasicGame.obstacles.checkWorldBounds = true;
 		 }		
 			if ( BasicGame.start == 0) {
 				BasicGame.start = 1;
-			//	BasicGame.music = this.game.add.audio('music').play('', 0, 0.1, true);
+//start music		//	BasicGame.music = this.game.add.audio('music').play('', 0, 0.1, true);
 			}
-
+			if (onTheGround && BasicGame.start == 1) {
+				hero_animated_sprint.alive = true;
+			}	
 /////// press to start
 },
 
@@ -294,6 +297,8 @@ BasicGame.obstacles.checkWorldBounds = true;
 		this.gameStarted = false;
 		this.gameOver = false;
 		this.score = 0;
+		this.hero_animated_sprint.alive = true;
+		BasicGame.start = 0;
 	},
 
 	startGame: function (pointer) {
